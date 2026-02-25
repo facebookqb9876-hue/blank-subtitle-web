@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Blank Subtitle Generator</title>
+<style>
+body { font-family: Arial; padding: 20px; background: #111; color: white; }
+button { padding: 10px; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<h2>Tạo SRT Trống</h2>
+
+<input type="file" id="audioFile" accept="audio/*"><br>
+<button onclick="processAudio()">Tạo SRT</button>
+
+<p id="status"></p>
+
+<script>
+function formatTime(seconds) {
+    let hrs = Math.floor(seconds / 3600);
+    let mins = Math.floor((seconds % 3600) / 60);
+    let secs = Math.floor(seconds % 60);
+    let ms = 0;
+
+    return (
+        String(hrs).padStart(2, '0') + ":" +
+        String(mins).padStart(2, '0') + ":" +
+        String(secs).padStart(2, '0') + "," +
+        String(ms).padStart(3, '0')
+    );
+}
+
+async function processAudio() {
+    const file = document.getElementById("audioFile").files[0];
+    if (!file) return alert("Chọn file trước");
+
+    document.getElementById("status").innerText = "Đang xử lý...";
+
+    const audio = new Audio(URL.createObjectURL(file));
+    await audio.play().catch(()=>{});
+    audio.pause();
+
+    const duration = audio.duration;
+    let srt = "";
+    let index = 1;
+    let step = 4; // mỗi đoạn 4 giây
+
+    for (let start = 0; start < duration; start += step) {
+        let end = Math.min(start + step, duration);
+        srt += index + "\n";
+        srt += formatTime(start) + " --> " + formatTime(end) + "\n\n";
+        index++;
+    }
+
+    const blob = new Blob([srt], { type: "text/plain" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "blank_subtitle.srt";
+    link.click();
+
+    document.getElementById("status").innerText = "Hoàn thành!";
+}
+</script>
+
+</body>
+</html>
